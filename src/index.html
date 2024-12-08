@@ -1,23 +1,31 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vanilla App Template</title>
     <link rel="stylesheet" href="./css/styles.css" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Image Search App</title>
   </head>
   <body>
-    <load src="./partials/header.html" icon-path="img/sprite.svg#logo" />
-
-    <main>
-      <!-- Loads the specified .html file -->
-      <load src="./partials/vite-promo.html" />
-      <load src="./partials/badges.html" />
-    </main>
-
-    <load src="./partials/footer.html" />
-
+    <div id="app">
+      <header>
+        <form id="search-form" class="form">
+          <input
+            type="text"
+            id="search-input"
+            placeholder="Search for images..."
+            required
+            class="input-form"
+          />
+          <button type="submit" class="btn">Search</button>
+        </form>
+      </header>
+      <main>
+        <div class="loader hidden" id="loader"></div>
+        <ul id="gallery" class="gallery"></ul>
+        <button id="load-more" class="btn-under hidden">Load more</button>
+      </main>
+    </div>
     <script type="module" src="./main.js"></script>
   </body>
 </html>
