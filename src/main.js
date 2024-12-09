@@ -1,24 +1,25 @@
 import 'izitoast/dist/css/iziToast.min.css';
 import 'simplelightbox/dist/simple-lightbox.min.css';
+
 import iziToast from 'izitoast';
-import SimpleLightbox from 'simplelightbox';
 import { fetchImages } from './js/pixabay-api.js';
 import { renderGallery } from './js/render-functions.js';
 
 const searchForm = document.getElementById('search-form');
 const gallery = document.getElementById('gallery');
 const loader = document.getElementById('loader');
-const loadMoreBtn = document.getElementById('load-more');
+const loadMoreButton = document.getElementById('load-more');
 
-let currentPage = 1;
-let currentQuery = '';
+let page = 1; // Текущая страница
+let query = ''; // Последний поисковый запрос
+let totalHits = 0; // Общее количество изображений
 
 const showLoader = () => loader.classList.remove('hidden');
 const hideLoader = () => loader.classList.add('hidden');
-const showLoadMoreBtn = () => loadMoreBtn.classList.remove('hidden');
-const hideLoadMoreBtn = () => loadMoreBtn.classList.add('hidden');
+const showLoadMoreButton = () => loadMoreButton.classList.remove('hidden');
+const hideLoadMoreButton = () => loadMoreButton.classList.add('hidden');
 
-const smoothScroll = () => {
+const scrollPage = () => {
   const { height: cardHeight } = gallery.firstElementChild.getBoundingClientRect();
   window.scrollBy({
     top: cardHeight * 2,
@@ -28,57 +29,61 @@ const smoothScroll = () => {
 
 const handleSearch = async (event) => {
   event.preventDefault();
-  currentQuery = searchForm.elements['search-input'].value.trim();
+  query = searchForm.elements['search-input'].value.trim();
+  page = 1;
 
-  if (!currentQuery) {
+  if (!query) {
     iziToast.error({ title: 'Error', message: 'Please enter a search query!' });
     return;
   }
 
-  currentPage = 1;
   gallery.innerHTML = '';
-  hideLoadMoreBtn();
+  hideLoadMoreButton();
   showLoader();
 
   try {
-    const { hits, totalHits } = await fetchImages(currentQuery, currentPage);
-    if (hits.length === 0) {
+    const { images, total } = await fetchImages(query, page);
+    totalHits = total;
+
+    if (images.length === 0) {
       iziToast.warning({
         title: 'No Results',
-        message: 'No images match your query. Try again!',
+        message: 'Sorry, there are no images matching your search query. Please try again!',
       });
     } else {
-      renderGallery(gallery, hits);
-      iziToast.success({
-        title: 'Success',
-        message: `Found ${totalHits} images!`,
-      });
-      if (hits.length < totalHits) showLoadMoreBtn();
+      renderGallery(gallery, images);
+      if (images.length < totalHits) showLoadMoreButton();
     }
   } catch (error) {
-    iziToast.error({ title: 'Error', message: 'Something went wrong!' });
+    iziToast.error({ title: 'Error', message: 'Something went wrong. Please try again later!' });
   } finally {
     hideLoader();
   }
 };
 
 const handleLoadMore = async () => {
-  currentPage += 1;
+  page += 1;
+  hideLoadMoreButton();
   showLoader();
-  hideLoadMoreBtn();
 
   try {
-    const { hits, totalHits } = await fetchImages(currentQuery, currentPage);
-    renderGallery(gallery, hits);
-    smoothScroll(); // Добавлено плавное скроллирование после рендеринга
-    if (currentPage * 15 >= totalHits) {
-      iziToast.info({
-        title: 'End of Results',
-        message: "You've reached the end of search results.",
-      });
-    } else {
-      showLoadMoreBtn();
+    const { images } = await fetchImages(query, page);
+
+    if (images.length === 0) {
+      iziToast.info({ message: "We're sorry, but you've reached the end of search results." });
+      hideLoadMoreButton();
+      return;
     }
+
+    renderGallery(gallery, images, true); // Добавляем новые изображения
+    if (page * 15 >= totalHits) {
+      hideLoadMoreButton();
+      iziToast.info({ message: "We're sorry, but you've reached the end of search results." });
+    } else {
+      showLoadMoreButton();
+    }
+
+    scrollPage();
   } catch (error) {
     iziToast.error({ title: 'Error', message: 'Failed to load more images!' });
   } finally {
@@ -87,4 +92,4 @@ const handleLoadMore = async () => {
 };
 
 searchForm.addEventListener('submit', handleSearch);
-loadMoreBtn.addEventListener('click', handleLoadMore);
+loadMoreButton.addEventListener('click', handleLoadMore);
