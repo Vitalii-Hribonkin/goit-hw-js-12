@@ -1,32 +1,30 @@
 import SimpleLightbox from 'simplelightbox';
+import 'simplelightbox/dist/simple-lightbox.min.css';
 
 let lightbox;
 
-/**
- * Очищает галерею или добавляет новые изображения.
- * @param {HTMLElement} galleryElement - элемент галереи.
- * @param {Array} images - список изображений для рендеринга.
- * @param {boolean} append - добавлять ли новые изображения.
- */
-export const renderGallery = (galleryElement, images, append = false) => {
-  const markup = images
+export const createGalleryMarkup = (images) => {
+  return images
     .map(
       (img) => `
-      <li class="li">
-        <a href="${img.largeImageURL}">
-          <img src="${img.webformatURL}" alt="${img.tags}" />
-        </a>
-        <div class="div">
-          <p class="p">Likes: ${img.likes}</p>
-          <p class="p">Views: ${img.views}</p>
-          <p class="p">Comments: ${img.comments}</p>
-          <p class="p">Downloads: ${img.downloads}</p>
-        </div>
-      </li>
-    `
+    <li class="li">
+      <a href="${img.largeImageURL}">
+        <img src="${img.webformatURL}" alt="${img.tags}" loading="lazy" />
+      </a>
+      <div class="div">
+        <p class="p">Likes: ${img.likes}</p>
+        <p class="p">Views: ${img.views}</p>
+        <p class="p">Comments: ${img.comments}</p>
+        <p class="p">Downloads: ${img.downloads}</p>
+      </div>
+    </li>
+  `
     )
     .join('');
+};
 
+export const renderGallery = (galleryElement, images, append = false) => {
+  const markup = createGalleryMarkup(images);
   if (append) {
     galleryElement.insertAdjacentHTML('beforeend', markup);
   } else {
